@@ -37,7 +37,7 @@ This project introduces an intelligent reservation system that:
 
 ## 🧱 Architecture
 
-**Current state.** The app today is a front-end prototype that runs entirely in the browser. Rooms and requests come from static mock data in `src/lib`, and submissions and approvals are kept in page state, so they are lost on refresh. There is no backend API, database, login, or test suite yet. See the [Project Reset Report](docs/project-reset-report.pdf) for the full assessment.
+**Current state.** The app today is a front-end prototype that runs entirely in the browser. Rooms and requests come from static mock data in `src/lib`, and submissions and approvals are kept in page state, so they are lost on refresh. There is no backend API, database, or login yet. See the [Project Reset Report](docs/project-reset-report.pdf) for the full assessment.
 
 **Target architecture (planned).** The diagram below is the design the backlog delivers. Users sign in, the frontend talks to a reservation API over HTTPS, every rule runs once in a shared domain module on the server, and approvals persist to the database and fan out to the service teams. The red dashed border around the server is the trust boundary.
 
@@ -126,7 +126,8 @@ The same diagram, plus the as-is layered view of the repository, the today-versu
 
 - React + TypeScript
 - Vite
-- Bun
+- npm
+- Vitest + Playwright
 - Node.js or Flask (backend)
 - AWS (planned deployment)
 - ESLint + Prettier
@@ -157,21 +158,57 @@ src/
 ```bash
 git clone git@github.com:joniabeje/backend-builders.git
 cd backend-builders
-bun install
-```
-
-## Install dependencies
-
-```bash
 npm install
-npm run dev
 ```
+
+This project uses **npm** as its package manager, and `package-lock.json` is the only lockfile. The Bun lockfile (`bun.lockb`) and `bunfig.toml` have been removed. Please don't commit `bun.lockb`, `yarn.lock`, or `pnpm-lock.yaml`.
 
 ## ▶️ Run Locally
 
 ```bash
-bun run dev
+npm run dev
 ```
+
+The app is served at http://localhost:8080.
+
+## 🧪 Testing
+
+### Unit tests (Vitest)
+
+Unit specs live next to the code as `src/**/*.test.ts`.
+
+```bash
+npm test                # run once
+npm run test:watch      # re-run on file changes
+npm run test:coverage   # run with coverage for src/lib/**
+```
+
+`test:coverage` prints a summary table and writes an HTML report to `coverage/index.html`.
+
+### End-to-end tests (Playwright)
+
+E2E specs live in `tests/e2e/` and are named `*.e2e.ts`, so `npm test` never picks them up.
+
+```bash
+npx playwright install chromium   # one-time browser download
+npm run test:e2e                  # run the suite headless
+npx playwright test --ui          # interactive runner
+npx playwright show-report        # open the last HTML report
+```
+
+You don't need to start the app first: `playwright.config.ts` launches `npm run dev` on port 8080, or reuses a dev server that is already running.
+
+### Lint and build
+
+```bash
+npm run lint
+npm run build
+```
+
+### Continuous integration
+
+- `.github/workflows/ci.yml` runs on every pull request: lint, then unit tests with coverage, then build. If any step fails, the PR check fails. The coverage report can be downloaded from the run as the `coverage-report` artifact.
+- `.github/workflows/playwright.yml` runs the e2e suite on pull requests to `main`.
 
 ## 👥 Team
 
